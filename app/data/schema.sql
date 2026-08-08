@@ -32,8 +32,8 @@ CREATE INDEX IF NOT EXISTS idx_violations_camera    ON violations(camera_id);
 CREATE INDEX IF NOT EXISTS idx_violations_timestamp ON violations(timestamp);
 CREATE INDEX IF NOT EXISTS idx_violations_resolved  ON violations(resolved);
 
--- All three roles share equal evidence-viewing access (Section 6.4) - this table exists for
--- identity/audit purposes (who resolved what), not to gate who can VIEW a violation's evidence.
+-- All three roles share equal evidence-viewing access this table exists for
+-- identity/audit purposes (who resolved what), not to check who can VIEW a violation's evidence.
 CREATE TABLE IF NOT EXISTS users (
     id      TEXT PRIMARY KEY,
     name    TEXT NOT NULL,

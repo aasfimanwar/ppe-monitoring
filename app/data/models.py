@@ -7,7 +7,7 @@ from typing import Optional
 
 
 class SourceType(str, Enum):
-    """Camera source types supported by the camera abstraction layer (Section 5)."""
+    """Camera source types supported by the camera abstraction layer."""
     WEBCAM = "webcam"
     RTSP = "rtsp"
     HTTP = "http"
@@ -22,7 +22,7 @@ class CameraStatus(str, Enum):
 
 
 class Role(str, Enum):
-    """All three operational roles share equal evidence-viewing access (Section 6.4)."""
+    """All three operational roles share equal evidence-viewing access."""
     SITE_MANAGER = "site_manager"
     SITE_SUPERVISOR = "site_supervisor"
     SAFETY_OFFICER = "safety_officer"

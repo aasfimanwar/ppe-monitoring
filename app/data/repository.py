@@ -1,16 +1,10 @@
 import sqlite3
 from typing import List, Optional
 
-from models import Camera, CameraStatus, Violation
+from app.data.models import Camera, CameraStatus, Violation
 
 
 def get_connection(db_path: str) -> sqlite3.Connection:
-    """Open a connection with foreign key enforcement turned on.
-
-    SQLite disables foreign key checks by default, and that setting is
-    per-connection, not stored in the database file itself - so every new
-    connection has to turn it on again, every time.
-    """
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

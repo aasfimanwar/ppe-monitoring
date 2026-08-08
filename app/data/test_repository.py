@@ -1,5 +1,5 @@
-from repository import get_connection, CameraRepository, ViolationRepository
-from models import Camera, Violation, SourceType
+from app.data.repository import get_connection, CameraRepository, ViolationRepository
+from app.data.models import Camera, Violation, SourceType
 
 conn = get_connection("violations.db")
 camera_repo = CameraRepository(conn)
