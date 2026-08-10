@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SneakySafety</title>
+  <link rel="icon" href="{{ url_for('dashboard.static', filename='icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('dashboard.static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <img src="{{ url_for('dashboard.static', filename='icon.png') }}" alt="SneakySafety" class="brand-icon">
+    <div class="brand-text">
+      <h1>SneakySafety</h1>
+      <p class="tagline">Smarter Eyes for Safer Sites</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="cameras-panel">
+      <h2>Cameras</h2>
+      <div id="camera-list" class="camera-list">Loading...</div>
+    </section>
+
+    <section class="violations-panel">
+      <h2>Violations</h2>
+      <div id="violation-list" class="violation-list">Loading...</div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('dashboard.static', filename='dashboard.js') }}"></script>
+</body>
+</html>
