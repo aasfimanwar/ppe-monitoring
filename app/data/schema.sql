@@ -25,15 +25,15 @@ CREATE TABLE IF NOT EXISTS violations (
     resolved        INTEGER NOT NULL DEFAULT 0 CHECK (resolved IN (0, 1)),
     resolved_by     TEXT,
     resolved_at     TEXT,
+    escalated       INTEGER NOT NULL DEFAULT 0 CHECK (escalated IN (0, 1)),
     created_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_violations_camera    ON violations(camera_id);
 CREATE INDEX IF NOT EXISTS idx_violations_timestamp ON violations(timestamp);
 CREATE INDEX IF NOT EXISTS idx_violations_resolved  ON violations(resolved);
+CREATE INDEX IF NOT EXISTS idx_violations_zone       ON violations(zone);
 
--- All three roles share equal evidence-viewing access this table exists for
--- identity/audit purposes (who resolved what), not to check who can VIEW a violation's evidence.
 CREATE TABLE IF NOT EXISTS users (
     id      TEXT PRIMARY KEY,
     name    TEXT NOT NULL,

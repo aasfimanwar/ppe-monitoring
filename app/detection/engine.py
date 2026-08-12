@@ -3,18 +3,16 @@ from typing import List
 
 from ultralytics import YOLO
 
-CONFIDENCE_THRESHOLD = 0.25  # confirmed production threshold (Section 7)
+CONFIDENCE_THRESHOLD = 0.25
 
-VIOLATION_CLASSES = {"NO-Hardhat", "NO-Mask", "Fall-Detected"}
+VIOLATION_CLASSES = {"NO-Hardhat", "NO-Mask", "Fall-Detected", "NO-Safety Vest"}
 
 
 @dataclass
 class Detection:
-    """One detected object in a frame - not yet a Violation. Becomes one only
-    if class_label is in VIOLATION_CLASSES (see DetectionEngine.get_violations)."""
     class_label: str
     confidence: float
-    bbox: tuple  # (x1, y1, x2, y2) in pixel coordinates
+    bbox: tuple
 
 
 class DetectionEngine:
@@ -23,8 +21,6 @@ class DetectionEngine:
         self.confidence_threshold = confidence_threshold
 
     def detect(self, image) -> List[Detection]:
-        """Run inference on one normalized frame, returning every detection the
-        model finds - including the 11 classes not currently treated as violations."""
         results = self.model(image, conf=self.confidence_threshold, verbose=False)
         detections: List[Detection] = []
         for result in results:
@@ -41,7 +37,4 @@ class DetectionEngine:
         return detections
 
     def get_violations(self, image) -> List[Detection]:
-        """Same as detect(), filtered to only the classes currently treated as
-        violations (VIOLATION_CLASSES). This is what the rest of the pipeline
-        (evidence capture, alerting) should actually call."""
         return [d for d in self.detect(image) if d.class_label in VIOLATION_CLASSES]

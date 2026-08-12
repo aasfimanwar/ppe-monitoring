@@ -12,6 +12,8 @@ from app.evidence.hashing import hash_file
 from app.evidence.snapshot import EVIDENCE_ROOT, save_snapshot
 
 VIOLATION_COOLDOWN_SECONDS = 30
+ZONE_ESCALATION_THRESHOLD = 3
+ZONE_ESCALATION_WINDOW_MINUTES = 60
 
 
 class DetectionPipeline:
@@ -72,6 +74,8 @@ class DetectionPipeline:
         full_path = EVIDENCE_ROOT / relative_path
         snapshot_hash = hash_file(str(full_path))
 
+        escalated = self._check_zone_escalation(frame.zone)
+
         violation = Violation(
             camera_id=frame.camera_id,
             zone=frame.zone,
@@ -80,14 +84,23 @@ class DetectionPipeline:
             timestamp=frame.timestamp,
             snapshot_path=relative_path,
             snapshot_hash=snapshot_hash,
+            escalated=escalated,
         )
         new_id = self.violation_repo.save(violation)
         violation.id = new_id
+
+        escalation_tag = " [ESCALATED]" if escalated else ""
         print(f"[{frame.camera_id}] Violation #{new_id}: {detection.class_label} "
-              f"({detection.confidence:.2f}) -> {relative_path}")
+              f"({detection.confidence:.2f}) -> {relative_path}{escalation_tag}")
 
         if self.alert_sender is not None:
             self.alert_sender.send_violation_alert(violation)
+
+    def _check_zone_escalation(self, zone: str) -> bool:
+        from datetime import datetime, timedelta, timezone
+        since = (datetime.now(timezone.utc) - timedelta(minutes=ZONE_ESCALATION_WINDOW_MINUTES)).isoformat()
+        recent_count = self.violation_repo.count_recent_by_zone(zone, since)
+        return (recent_count + 1) >= ZONE_ESCALATION_THRESHOLD
 
     def run_forever(self, interval_seconds: float = config.CAPTURE_INTERVAL_SECONDS) -> None:
         print(f"[{self.camera.id}] Pipeline started. Press Ctrl+C to stop.")

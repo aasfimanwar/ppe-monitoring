@@ -22,9 +22,13 @@ function renderViolations(violations) {
     <div class="violation-card ${v.resolved ? "resolved" : "unresolved"}">
       <img class="thumb" src="/api/violations/${v.id}/evidence" alt="evidence">
       <div class="violation-info">
-        <div class="violation-class">${v.violation_class}</div>
+        <div class="violation-class">
+          ${v.violation_class}
+          ${v.escalated ? '<span class="status-badge status-error">ESCALATED</span>' : ""}
+        </div>
         <div class="violation-meta">${v.camera_id} - ${v.zone} - ${new Date(v.timestamp).toLocaleString()}</div>
         <div class="violation-meta">Confidence: ${(v.confidence * 100).toFixed(0)}%</div>
+        ${v.escalated ? '<div class="violation-meta">Repeat violations in this zone - identify the worker from the photo and act per policy.</div>' : ""}
       </div>
       <div>
         ${v.resolved
@@ -38,7 +42,6 @@ function renderViolations(violations) {
     btn.addEventListener("click", () => resolveViolation(btn.dataset.id));
   });
 }
-
 async function resolveViolation(id) {
   const resolvedBy = prompt("Your name:");
   if (!resolvedBy) return;

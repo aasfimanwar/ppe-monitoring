@@ -7,7 +7,7 @@ from typing import Optional
 
 
 class SourceType(str, Enum):
-    """Camera source types supported by the camera abstraction layer."""
+    """Camera source types supported by the camera abstraction layer (Section 5)."""
     WEBCAM = "webcam"
     RTSP = "rtsp"
     HTTP = "http"
@@ -22,7 +22,7 @@ class CameraStatus(str, Enum):
 
 
 class Role(str, Enum):
-    """All three operational roles share equal evidence-viewing access."""
+    """All three operational roles share equal evidence-viewing access (Section 6.4)."""
     SITE_MANAGER = "site_manager"
     SITE_SUPERVISOR = "site_supervisor"
     SAFETY_OFFICER = "safety_officer"
@@ -36,15 +36,15 @@ def _utc_now_iso() -> str:
 
 @dataclass
 class Camera:
-    id: str                                  # stable camera_id, e.g. "cam-gate-01"
+    id: str
     name: str
     source_type: SourceType
-    source_uri: str                          # device index, rtsp://, http://, or ONVIF-resolved URI
+    source_uri: str
     zone: str
-    credentials_ref: Optional[str] = None    # reference/secret name, never a plaintext password
+    credentials_ref: Optional[str] = None
     status: CameraStatus = CameraStatus.UNKNOWN
     created_at: str = field(default_factory=_utc_now_iso)
-    last_seen_at: Optional[str] = None       # updated by the resilience layer's health check
+    last_seen_at: Optional[str] = None
 
     @staticmethod
     def from_row(row: tuple) -> "Camera":
@@ -57,17 +57,18 @@ class Camera:
 
 @dataclass
 class Violation:
-    camera_id: str                           # frame-camera tagging (FR9 / Section 6.2)
+    camera_id: str
     zone: str
-    violation_class: str                     # e.g. NO-Hardhat, NO-Mask, Fall-Detected
-    snapshot_path: str                       # confirmed convention: camera_id/date/timestamp.jpg
-    snapshot_hash: str                       # confirmed default: SHA-256 hex digest (NFR7)
-    id: Optional[int] = None                 # set once persisted (AUTOINCREMENT)
+    violation_class: str
+    snapshot_path: str
+    snapshot_hash: str
+    id: Optional[int] = None
     confidence: Optional[float] = None
-    timestamp: str = field(default_factory=_utc_now_iso)   # server-side (NFR8)
-    resolved: bool = False                   # FR6 - permissions model still pending validation
+    timestamp: str = field(default_factory=_utc_now_iso)
+    resolved: bool = False
     resolved_by: Optional[str] = None
     resolved_at: Optional[str] = None
+    escalated: bool = False  # FR8 - zone crossed the repeat-violation threshold
     created_at: str = field(default_factory=_utc_now_iso)
 
     @staticmethod
@@ -75,7 +76,8 @@ class Violation:
         return Violation(
             id=row[0], camera_id=row[1], zone=row[2], violation_class=row[3], confidence=row[4],
             timestamp=row[5], snapshot_path=row[6], snapshot_hash=row[7],
-            resolved=bool(row[8]), resolved_by=row[9], resolved_at=row[10], created_at=row[11],
+            resolved=bool(row[8]), resolved_by=row[9], resolved_at=row[10],
+            escalated=bool(row[11]), created_at=row[12],
         )
 
 

@@ -52,13 +52,13 @@ class ViolationRepository:
             """
             INSERT INTO violations (camera_id, zone, class, confidence, timestamp,
                                      snapshot_path, snapshot_hash, resolved,
-                                     resolved_by, resolved_at, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                     resolved_by, resolved_at, escalated, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (violation.camera_id, violation.zone, violation.violation_class,
              violation.confidence, violation.timestamp, violation.snapshot_path,
              violation.snapshot_hash, int(violation.resolved), violation.resolved_by,
-             violation.resolved_at, violation.created_at),
+             violation.resolved_at, int(violation.escalated), violation.created_at),
         )
         self.conn.commit()
         return cursor.lastrowid
@@ -72,6 +72,16 @@ class ViolationRepository:
             "SELECT * FROM violations WHERE camera_id = ? ORDER BY timestamp DESC", (camera_id,)
         ).fetchall()
         return [Violation.from_row(row) for row in rows]
+
+    def count_recent_by_zone(self, zone: str, since_timestamp: str) -> int:
+        """Counts violations in `zone` with timestamp >= since_timestamp - the
+        basis for FR8's zone escalation check. ISO-8601 timestamps compare
+        correctly as plain strings, since they're all UTC and zero-padded."""
+        row = self.conn.execute(
+            "SELECT COUNT(*) FROM violations WHERE zone = ? AND timestamp >= ?",
+            (zone, since_timestamp),
+        ).fetchone()
+        return row[0]
 
     def mark_resolved(self, violation_id: int, resolved_by: str, resolved_at: str) -> None:
         self.conn.execute(

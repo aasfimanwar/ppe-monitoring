@@ -6,7 +6,7 @@ from typing import List
 from app.data.models import Violation
 
 SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 465  # SSL
+SMTP_PORT = 465
 
 
 class EmailAlertSender:
@@ -16,7 +16,6 @@ class EmailAlertSender:
         self.recipients = recipients
 
     def send_violation_alert(self, violation: Violation) -> None:
-        """Build and send one alert email for a single violation."""
         message = self._build_message(violation)
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
@@ -25,10 +24,12 @@ class EmailAlertSender:
 
     def _build_message(self, violation: Violation) -> EmailMessage:
         message = EmailMessage()
-        message["Subject"] = f"PPE Violation: {violation.violation_class} - {violation.zone}"
+        prefix = "[ESCALATED] " if violation.escalated else ""
+        message["Subject"] = f"{prefix}PPE Violation: {violation.violation_class} - {violation.zone}"
         message["From"] = self.sender_address
         message["To"] = ", ".join(self.recipients)
-        message.set_content(
+
+        body = (
             f"A PPE violation was detected.\n\n"
             f"Camera: {violation.camera_id}\n"
             f"Zone: {violation.zone}\n"
@@ -37,4 +38,11 @@ class EmailAlertSender:
             f"Confidence: {violation.confidence}\n"
             f"Evidence file: {violation.snapshot_path}\n"
         )
+        if violation.escalated:
+            body += (
+                f"\nThis zone has had repeat violations recently. Please review the "
+                f"evidence photo, identify the individual involved, and take action "
+                f"in line with organizational policy.\n"
+            )
+        message.set_content(body)
         return message
